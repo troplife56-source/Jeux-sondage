@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Baromètre Politique - Mobile</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+        body {
+            background-color: #0b1329;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        header {
+            padding: 10px;
+            background: #111d4a;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            border-bottom: 2px solid #23356b;
+        }
+        #game-container {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            background: radial-gradient(circle, #101c42 0%, #070b19 100%);
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        #scoreboard {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(11, 19, 41, 0.9);
+            border: 1px solid #23356b;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            max-width: 140px;
+        }
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        #controls {
+            display: flex;
+            flex-wrap: wrap;
+            background: #111d4a;
+            padding: 8px;
+            gap: 6px;
+            justify-content: center;
+            border-top: 2px solid #23356b;
+        }
+        .btn-party {
+            flex: 1 1 30%;
+            padding: 12px 5px;
+            font-size: 14px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            touch-action: manipulation;
+        }
+        /* Couleurs ultra-contrastées et bien distinctes */
+        #btn-rn { background-color: #1b4965; }    /* Bleu marine foncé */
+        #btn-lfi { background-color: #d90429; }   /* Rouge très vif */
+        #btn-re { background-color: #ffb703; color: #000; text-shadow: none; } /* Jaune lumineux */
+        #btn-ps { background-color: #ff007f; }   /* Rose fuchsia */
+        #btn-lr { background-color: #3a86ff; }   /* Bleu électrique clair */
+        #btn-eelv { background-color: #38b000; } /* Vert pomme / émeraude */
+    </style>
+</head>
+<body>
+
+    <header>BAROMÈTRE POLITIQUE MOBILE</header>
+
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="scoreboard">
+            <div class="score-item"><span>RN:</span> <span id="score-rn">0</span></div>
+            <div class="score-item"><span>LFI:</span> <span id="score-lfi">0</span></div>
+            <div class="score-item"><span>RE:</span> <span id="score-re">0</span></div>
+            <div class="score-item"><span>PS:</span> <span id="score-ps">0</span></div>
+            <div class="score-item"><span>LR:</span> <span id="score-lr">0</span></div>
+            <div class="score-item"><span>EELV:</span> <span id="score-eelv">0</span></div>
+        </div>
+    </div>
+
+    <div id="controls">
+        <button class="btn-party" id="btn-rn" onclick="addVote('rn')">+ RN</button>
+        <button class="btn-party" id="btn-lfi" onclick="addVote('lfi')">+ LFI</button>
+        <button class="btn-party" id="btn-re" onclick="addVote('re')">+ RE</button>
+        <button class="btn-party" id="btn-ps" onclick="addVote('ps')">+ PS</button>
+        <button class="btn-party" id="btn-lr" onclick="addVote('lr')">+ LR</button>
+        <button class="btn-party" id="btn-eelv" onclick="addVote('eelv')">+ EELV</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let balls = [];
+        let scores = { rn: 0, lfi: 0, re: 0, ps: 0, lr: 0, eelv: 0 };
+        
+        // Correspondance exacte avec les couleurs bien tranchées
+        const colors = {
+            rn: '#1b4965',
+            lfi: '#d90429',
+            re: '#ffb703',
+            ps: '#ff007f',
+            lr: '#3a86ff',
+            eelv: '#38b000'
+        };
+
+        class Ball {
+            constructor(party) {
+                this.x = canvas.width / 2 + (Math.random() * 40 - 20);
+                this.y = 20;
+                this.radius = 13;
+                this.vx = (Math.random() - 0.5) * 4;
+                this.vy = 2;
+                this.color = colors[party] || '#ffffff';
+                this.party = party;
+            }
+
+            update() {
+                this.vy += 0.3; // Gravité
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x - this.radius < 0) {
+                    this.x = this.radius;
+                    this.vx *= -0.7;
+                } else if (this.x + this.radius > canvas.width) {
+                    this.x = canvas.width - this.radius;
+                    this.vx *= -0.7;
+                }
+
+                if (this.y + this.radius > canvas.height - 10) {
+                    this.y = canvas.height - 10 - this.radius;
+                    this.vy *= -0.4;
+                    this.vx *= 0.8;
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#ffffff'; // Contour blanc pour bien détacher chaque boule
+                ctx.stroke();
+                ctx.closePath();
+            }
+        }
+
+        function addVote(party) {
+            scores[party]++;
+            document.getElementById(`score-${party}`).textContent = scores[party];
+            balls.push(new Ball(party));
+            
+            if (balls.length > 50) {
+                balls.shift();
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            balls.forEach(ball => {
+                ball.update();
+                ball.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
