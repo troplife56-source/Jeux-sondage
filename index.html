@@ -27,6 +27,20 @@
             font-size: 16px;
             font-weight: bold;
             border-bottom: 2px solid #23356b;
+            position: relative;
+        }
+        #btn-settings-open {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #23356b;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
         }
         #game-container {
             flex: 1;
@@ -43,7 +57,7 @@
         #scoreboard {
             position: absolute;
             top: 10px;
-            right: 10px;
+            left: 10px;
             background: rgba(11, 19, 41, 0.9);
             border: 1px solid #23356b;
             padding: 8px;
@@ -78,37 +92,95 @@
             touch-action: manipulation;
         }
         /* Couleurs ultra-contrastées et bien distinctes */
-        #btn-rn { background-color: #1b4965; }    /* Bleu marine foncé */
-        #btn-lfi { background-color: #d90429; }   /* Rouge très vif */
-        #btn-re { background-color: #ffb703; color: #000; text-shadow: none; } /* Jaune lumineux */
-        #btn-ps { background-color: #ff007f; }   /* Rose fuchsia */
-        #btn-lr { background-color: #3a86ff; }   /* Bleu électrique clair */
-        #btn-eelv { background-color: #38b000; } /* Vert pomme / émeraude */
+        #btn-p1 { background-color: #1b4965; }
+        #btn-p2 { background-color: #d90429; }
+        #btn-p3 { background-color: #ffb703; color: #000; text-shadow: none; }
+        #btn-p4 { background-color: #ff007f; }
+        #btn-p5 { background-color: #3a86ff; }
+        #btn-p6 { background-color: #38b000; }
+
+        /* Modal Paramètres */
+        #settings-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #111d4a;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #23356b;
+            width: 90%;
+            max-width: 320px;
+        }
+        .modal-content h3 { margin-bottom: 10px; font-size: 16px; text-align: center; }
+        .modal-content input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            border: 1px solid #23356b;
+            background: #0b1329;
+            color: white;
+        }
+        .modal-content button {
+            width: 100%;
+            padding: 10px;
+            background: #3a86ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
 
-    <header>BAROMÈTRE POLITIQUE MOBILE</header>
+    <header>
+        <span id="header-title">BAROMÈTRE POLITIQUE MOBILE</span>
+        <button id="btn-settings-open" onclick="toggleSettings(true)">⚙️ Options</button>
+    </header>
 
     <div id="game-container">
         <canvas id="gameCanvas"></canvas>
         <div id="scoreboard">
-            <div class="score-item"><span>RN:</span> <span id="score-rn">0</span></div>
-            <div class="score-item"><span>LFI:</span> <span id="score-lfi">0</span></div>
-            <div class="score-item"><span>RE:</span> <span id="score-re">0</span></div>
-            <div class="score-item"><span>PS:</span> <span id="score-ps">0</span></div>
-            <div class="score-item"><span>LR:</span> <span id="score-lr">0</span></div>
-            <div class="score-item"><span>EELV:</span> <span id="score-eelv">0</span></div>
+            <div class="score-item"><span id="label-p1">RN:</span> <span id="score-p1">0</span></div>
+            <div class="score-item"><span id="label-p2">LFI:</span> <span id="score-p2">0</span></div>
+            <div class="score-item"><span id="label-p3">RE:</span> <span id="score-p3">0</span></div>
+            <div class="score-item"><span id="label-p4">PS:</span> <span id="score-p4">0</span></div>
+            <div class="score-item"><span id="label-p5">LR:</span> <span id="score-p5">0</span></div>
+            <div class="score-item"><span id="label-p6">EELV:</span> <span id="score-p6">0</span></div>
         </div>
     </div>
 
     <div id="controls">
-        <button class="btn-party" id="btn-rn" onclick="addVote('rn')">+ RN</button>
-        <button class="btn-party" id="btn-lfi" onclick="addVote('lfi')">+ LFI</button>
-        <button class="btn-party" id="btn-re" onclick="addVote('re')">+ RE</button>
-        <button class="btn-party" id="btn-ps" onclick="addVote('ps')">+ PS</button>
-        <button class="btn-party" id="btn-lr" onclick="addVote('lr')">+ LR</button>
-        <button class="btn-party" id="btn-eelv" onclick="addVote('eelv')">+ EELV</button>
+        <button class="btn-party" id="btn-p1" onclick="addVote('p1')">+ <span id="btn-text-p1">RN</span></button>
+        <button class="btn-party" id="btn-p2" onclick="addVote('p2')">+ <span id="btn-text-p2">LFI</span></button>
+        <button class="btn-party" id="btn-p3" onclick="addVote('p3')">+ <span id="btn-text-p3">RE</span></button>
+        <button class="btn-party" id="btn-p4" onclick="addVote('p4')">+ <span id="btn-text-p4">PS</span></button>
+        <button class="btn-party" id="btn-p5" onclick="addVote('p5')">+ <span id="btn-text-p5">LR</span></button>
+        <button class="btn-party" id="btn-p6" onclick="addVote('p6')">+ <span id="btn-text-p6">EELV</span></button>
+    </div>
+
+    <!-- Fenêtre modale des paramètres -->
+    <div id="settings-modal">
+        <div class="modal-content">
+            <h3>Personnaliser les étiquettes</h3>
+            <input type="text" id="in-p1" value="RN">
+            <input type="text" id="in-p2" value="LFI">
+            <input type="text" id="in-p3" value="RE">
+            <input type="text" id="in-p4" value="PS">
+            <input type="text" id="in-p5" value="LR">
+            <input type="text" id="in-p6" value="EELV">
+            <button onclick="saveSettings()">Enregistrer</button>
+            <button onclick="toggleSettings(false)" style="background:#d90429; margin-top:8px;">Fermer</button>
+        </div>
     </div>
 
     <script>
@@ -123,17 +195,34 @@
         resizeCanvas();
 
         let balls = [];
-        let scores = { rn: 0, lfi: 0, re: 0, ps: 0, lr: 0, eelv: 0 };
+        let scores = { p1: 0, p2: 0, p3: 0, p4: 0, p5: 0, p6: 0 };
         
-        // Correspondance exacte avec les couleurs bien tranchées
         const colors = {
-            rn: '#1b4965',
-            lfi: '#d90429',
-            re: '#ffb703',
-            ps: '#ff007f',
-            lr: '#3a86ff',
-            eelv: '#38b000'
+            p1: '#1b4965',
+            p2: '#d90429',
+            p3: '#ffb703',
+            p4: '#ff007f',
+            p5: '#3a86ff',
+            p6: '#38b000'
         };
+
+        // Générateur de son synthétique ultra léger
+        function playPopSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            } catch(e) {}
+        }
 
         class Ball {
             constructor(party) {
@@ -172,7 +261,7 @@
                 ctx.fillStyle = this.color;
                 ctx.fill();
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = '#ffffff'; // Contour blanc pour bien détacher chaque boule
+                ctx.strokeStyle = '#ffffff';
                 ctx.stroke();
                 ctx.closePath();
             }
@@ -182,10 +271,24 @@
             scores[party]++;
             document.getElementById(`score-${party}`).textContent = scores[party];
             balls.push(new Ball(party));
+            playPopSound();
             
             if (balls.length > 50) {
                 balls.shift();
             }
+        }
+
+        function toggleSettings(show) {
+            document.getElementById('settings-modal').style.display = show ? 'flex' : 'none';
+        }
+
+        function saveSettings() {
+            for (let i = 1; i <= 6; i++) {
+                const val = document.getElementById(`in-p${i}`).value;
+                document.getElementById(`label-p${i}`).textContent = val + ':';
+                document.getElementById(`btn-text-p${i}`).textContent = val;
+            }
+            toggleSettings(false);
         }
 
         function animate() {
