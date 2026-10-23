@@ -19,7 +19,7 @@
             flex-direction: column;
             width: 100vw;
             height: 100vh;
-            height: 100dvh; /* Hauteur dynamique exacte sur mobile */
+            height: 100dvh;
             overflow: hidden;
         }
         header {
@@ -32,11 +32,15 @@
             position: relative;
             flex-shrink: 0;
         }
-        #btn-settings-open {
+        .header-btns {
             position: absolute;
             right: 8px;
             top: 50%;
             transform: translateY(-50%);
+            display: flex;
+            gap: 4px;
+        }
+        .btn-header {
             background: #23356b;
             color: white;
             border: none;
@@ -45,6 +49,8 @@
             cursor: pointer;
             font-size: 11px;
         }
+        #btn-reset { background: #d90429; }
+
         #game-container {
             flex: 1;
             position: relative;
@@ -151,7 +157,10 @@
 
     <header>
         <span id="header-title">BAROMÈTRE POLITIQUE</span>
-        <button id="btn-settings-open" onclick="toggleSettings(true)">⚙️ Options</button>
+        <div class="header-btns">
+            <button class="btn-header" id="btn-reset" onclick="resetGame()">🔄 Reset</button>
+            <button class="btn-header" onclick="toggleSettings(true)">⚙️ Options</button>
+        </div>
     </header>
 
     <div id="game-container">
@@ -213,36 +222,51 @@
             p6: '#38b000'
         };
 
-        function playPopSound() {
+        // Contexte audio partagé pour éviter le blocage et créer l'effet bombardement/mitraillette
+        let audioCtx = null;
+        function playBombardmentSound() {
             try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                
+                // Variation de fréquence aléatoire pour un effet dynamique de cascade / impact
+                const randomFreq = 250 + Math.random() * 250;
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(randomFreq, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.08);
+                
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
+                
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.1);
+                osc.stop(audioCtx.currentTime + 0.08);
             } catch(e) {}
         }
 
         class Ball {
             constructor(party) {
-                this.x = canvas.width / 2 + (Math.random() * 40 - 20);
-                this.y = 20;
+                this.x = canvas.width / 2 + (Math.random() * 60 - 30);
+                this.y = 10;
                 this.radius = 12;
-                this.vx = (Math.random() - 0.5) * 4;
+                this.vx = (Math.random() - 0.5) * 6;
                 this.vy = 2;
                 this.color = colors[party] || '#ffffff';
                 this.party = party;
             }
 
             update() {
-                this.vy += 0.3;
+                this.vy += 0.35;
                 this.x += this.vx;
                 this.y += this.vy;
 
@@ -277,11 +301,19 @@
             scores[party]++;
             document.getElementById(`score-${party}`).textContent = scores[party];
             balls.push(new Ball(party));
-            playPopSound();
+            playBombardmentSound();
             
-            if (balls.length > 50) {
+            if (balls.length > 805) {
                 balls.shift();
             }
+        }
+
+        function resetGame() {
+            scores = { p1: 0, p2: 0, p3: 0, p4: 0, p5: 0, p6: 0 };
+            for (let i = 1; i <= 6; i++) {
+                document.getElementById(`score-p${i}`).textContent = '0';
+            }
+            balls = [];
         }
 
         function toggleSettings(show) {
